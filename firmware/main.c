@@ -5,12 +5,12 @@
 #define CMD_WEN         0x20
 #define CMD_POA(val)    (((val) & 0x30) >> 4)
 #define CMD_POD(val)    (((val) & 0x10) >> 4)
-#define CMD_DAT(val)    ( (val)         >> 4)
+#define CMD_DAT(val)    ( (val) & 0x0F      )
 
 typedef unsigned char byte;
 typedef unsigned short word;
 
-__bit busy = 0;
+__bit busy = 0, avail = 0;
 
 static byte recBuf = 0x00;
 static byte dataBuf = 0x00;
@@ -21,7 +21,13 @@ void sendString(char *s);
 
 volatile __xdata __at (0x0000) byte eepRom[0x8000];
 
+__sfr __at (0x8E) AUXR;
+__sbit __at (0xE8) P40;
+__sbit __at (0xE9) P41;
+
 void main() {
+    AUXR = 0x02; // Enable external ram
+
     SCON = 0x50;
 
     TMOD = 0x20;
@@ -32,13 +38,9 @@ void main() {
 
     sendString("NSSTC-V1.0\r\n");
 
-    while(1);
-}
-
-void __uart_interrupt() __interrupt 4 __using 1 {
-    if (RI) {
-        RI = 0;
-        recBuf = SBUF;
+    while(1) {
+        P1 = ~dataBuf;
+        if (!avail) continue;
 
         if (recBuf & CMD_NRW) {
             // Write
@@ -51,7 +53,9 @@ void __uart_interrupt() __interrupt 4 __using 1 {
                 if (recBuf & CMD_WEN) {
                     // Write in
                     eepRom[writeAddr] = dataBuf;
+                    sendByte(dataBuf); // Send to host to verify.
                     writeAddr += 1;
+                    P40 = !P40;
                 } else {
                     // Write set
                     dataBuf &= ~(0x0F << (CMD_POD(recBuf) * 4));
@@ -68,7 +72,21 @@ void __uart_interrupt() __interrupt 4 __using 1 {
                 // Data
                 sendByte(eepRom[readAddr]);
                 readAddr += 1;
+                P41 = !P41;
             }
+        }
+
+        recBuf = 0x00;
+        avail = 0;
+    }
+}
+
+void __uart_interrupt() __interrupt 4 __using 1 {
+    if (RI) {
+        RI = 0;
+        if (!avail) {
+            recBuf = SBUF;
+            avail = 1;
         }
     }
     if (TI) {

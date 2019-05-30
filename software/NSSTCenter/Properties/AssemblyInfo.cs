@@ -6,12 +6,12 @@ using System.Runtime.InteropServices;
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("NSSTCenter")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("NyaSama Simple Transfer Center")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("NSDN")]
 [assembly: AssemblyProduct("NSSTCenter")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("Copyright © NSDN 2014 - 2019")]
+[assembly: AssemblyTrademark("NSSTCenter")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 会使此程序集中的类型
