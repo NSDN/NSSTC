@@ -51,11 +51,30 @@ void main() {
             } else {
                 // Data
                 if (recBuf & CMD_WEN) {
-                    // Write in
-                    eepRom[writeAddr] = dataBuf;
-                    sendByte(dataBuf); // Send to host to verify.
-                    writeAddr += 1;
-                    P40 = !P40;
+                    if (recBuf == 0xAA) {
+                        // Disable SDP
+                        P1 = 0xAA;
+                        eepRom[0x5555] = 0xAA;
+                        eepRom[0x2AAA] = 0x55;
+                        eepRom[0x5555] = 0x80;
+                        eepRom[0x5555] = 0xAA;
+                        eepRom[0x2AAA] = 0x55;
+                        eepRom[0x5555] = 0x20;
+                        P1 = 0x55;
+                    } else if (recBuf == 0xA5) {
+                        // Enable SDP
+                        P1 = 0x55;
+                        eepRom[0x5555] = 0xAA;
+                        eepRom[0x2AAA] = 0x55;
+                        eepRom[0x5555] = 0xA0;
+                        P1 = 0xAA;
+                    } else {
+                        // Write in
+                        eepRom[writeAddr] = dataBuf;
+                        sendByte(dataBuf); // Send to host to verify.
+                        writeAddr += 1;
+                        P40 = !P40;
+                    }
                 } else {
                     // Write set
                     dataBuf &= ~(0x0F << (CMD_POD(recBuf) * 4));

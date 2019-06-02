@@ -160,6 +160,8 @@ namespace NSSTCenter
             btnCheck.Enabled = true;
             btnWrite.Enabled = true;
             checkHigh.Enabled = true;
+            btnEnableSDP.Enabled = true;
+            btnDisableSDP.Enabled = true;
         }
 
         private void DisableAllControls()
@@ -176,6 +178,8 @@ namespace NSSTCenter
             btnCheck.Enabled = false;
             btnWrite.Enabled = false;
             checkHigh.Enabled = false;
+            btnEnableSDP.Enabled = false;
+            btnDisableSDP.Enabled = false;
         }
 
         private void BtnRefresh_Click(object sender, EventArgs e)
@@ -442,6 +446,28 @@ namespace NSSTCenter
             boxPath.Text = path;
             boxSize.Text = "-";
             boxChksum.Text = "-";
+        }
+
+        private void BtnEnableSDP_Click(object sender, EventArgs e)
+        {
+            if (!serialPort.IsOpen)
+            {
+                btnConnect.Focus();
+                return;
+            }
+            SendBytes(0xA5);
+            MessageBox.Show("软件数据保护（SDP）已开启", "保护已开启", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void BtnDisableSDP_Click(object sender, EventArgs e)
+        {
+            if (!serialPort.IsOpen)
+            {
+                btnConnect.Focus();
+                return;
+            }
+            SendBytes(0xAA);
+            MessageBox.Show("软件数据保护（SDP）已关闭", "保护已关闭", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

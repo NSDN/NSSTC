@@ -45,6 +45,7 @@
             this.labelPath = new System.Windows.Forms.Label();
             this.btnOpen = new System.Windows.Forms.Button();
             this.groupFlash = new System.Windows.Forms.GroupBox();
+            this.checkHigh = new System.Windows.Forms.CheckBox();
             this.btnCheck = new System.Windows.Forms.Button();
             this.btnRead = new System.Windows.Forms.Button();
             this.btnWrite = new System.Windows.Forms.Button();
@@ -58,7 +59,8 @@
             this.openDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveDialog = new System.Windows.Forms.SaveFileDialog();
             this.proBar = new System.Windows.Forms.ProgressBar();
-            this.checkHigh = new System.Windows.Forms.CheckBox();
+            this.btnEnableSDP = new System.Windows.Forms.Button();
+            this.btnDisableSDP = new System.Windows.Forms.Button();
             this.groupPort.SuspendLayout();
             this.groupFile.SuspendLayout();
             this.groupFlash.SuspendLayout();
@@ -148,7 +150,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(8, 74);
+            this.btnSave.Location = new System.Drawing.Point(6, 74);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(75, 23);
             this.btnSave.TabIndex = 7;
@@ -219,6 +221,9 @@
             // 
             // groupFlash
             // 
+            this.groupFlash.Controls.Add(this.proBar);
+            this.groupFlash.Controls.Add(this.btnDisableSDP);
+            this.groupFlash.Controls.Add(this.btnEnableSDP);
             this.groupFlash.Controls.Add(this.checkHigh);
             this.groupFlash.Controls.Add(this.btnCheck);
             this.groupFlash.Controls.Add(this.btnRead);
@@ -231,10 +236,20 @@
             this.groupFlash.Controls.Add(this.labelFill);
             this.groupFlash.Location = new System.Drawing.Point(12, 203);
             this.groupFlash.Name = "groupFlash";
-            this.groupFlash.Size = new System.Drawing.Size(320, 106);
+            this.groupFlash.Size = new System.Drawing.Size(320, 135);
             this.groupFlash.TabIndex = 2;
             this.groupFlash.TabStop = false;
             this.groupFlash.Text = "读写控制";
+            // 
+            // checkHigh
+            // 
+            this.checkHigh.AutoSize = true;
+            this.checkHigh.Location = new System.Drawing.Point(230, 22);
+            this.checkHigh.Name = "checkHigh";
+            this.checkHigh.Size = new System.Drawing.Size(84, 16);
+            this.checkHigh.TabIndex = 9;
+            this.checkHigh.Text = "无校验写入";
+            this.checkHigh.UseVisualStyleBackColor = true;
             // 
             // btnCheck
             // 
@@ -248,7 +263,7 @@
             // 
             // btnRead
             // 
-            this.btnRead.Location = new System.Drawing.Point(8, 77);
+            this.btnRead.Location = new System.Drawing.Point(6, 77);
             this.btnRead.Name = "btnRead";
             this.btnRead.Size = new System.Drawing.Size(75, 23);
             this.btnRead.TabIndex = 7;
@@ -346,34 +361,43 @@
             // 
             // proBar
             // 
-            this.proBar.Location = new System.Drawing.Point(12, 315);
+            this.proBar.Location = new System.Drawing.Point(6, 106);
             this.proBar.Name = "proBar";
-            this.proBar.Size = new System.Drawing.Size(320, 20);
+            this.proBar.Size = new System.Drawing.Size(148, 23);
             this.proBar.TabIndex = 9;
             // 
-            // checkHigh
+            // btnEnableSDP
             // 
-            this.checkHigh.AutoSize = true;
-            this.checkHigh.Location = new System.Drawing.Point(230, 22);
-            this.checkHigh.Name = "checkHigh";
-            this.checkHigh.Size = new System.Drawing.Size(84, 16);
-            this.checkHigh.TabIndex = 9;
-            this.checkHigh.Text = "无校验写入";
-            this.checkHigh.UseVisualStyleBackColor = true;
+            this.btnEnableSDP.Location = new System.Drawing.Point(158, 106);
+            this.btnEnableSDP.Name = "btnEnableSDP";
+            this.btnEnableSDP.Size = new System.Drawing.Size(75, 23);
+            this.btnEnableSDP.TabIndex = 10;
+            this.btnEnableSDP.Text = "打开保护";
+            this.btnEnableSDP.UseVisualStyleBackColor = true;
+            this.btnEnableSDP.Click += new System.EventHandler(this.BtnEnableSDP_Click);
+            // 
+            // btnDisableSDP
+            // 
+            this.btnDisableSDP.Location = new System.Drawing.Point(239, 106);
+            this.btnDisableSDP.Name = "btnDisableSDP";
+            this.btnDisableSDP.Size = new System.Drawing.Size(75, 23);
+            this.btnDisableSDP.TabIndex = 11;
+            this.btnDisableSDP.Text = "关闭保护";
+            this.btnDisableSDP.UseVisualStyleBackColor = true;
+            this.btnDisableSDP.Click += new System.EventHandler(this.BtnDisableSDP_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(344, 347);
-            this.Controls.Add(this.proBar);
+            this.ClientSize = new System.Drawing.Size(344, 350);
             this.Controls.Add(this.groupFlash);
             this.Controls.Add(this.groupFile);
             this.Controls.Add(this.groupPort);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(360, 386);
-            this.MinimumSize = new System.Drawing.Size(360, 386);
+            this.MaximumSize = new System.Drawing.Size(360, 389);
+            this.MinimumSize = new System.Drawing.Size(360, 389);
             this.Name = "MainForm";
             this.Text = "NyaSama Simple Transfer Center";
             this.groupPort.ResumeLayout(false);
@@ -418,6 +442,8 @@
         private System.Windows.Forms.SaveFileDialog saveDialog;
         private System.Windows.Forms.ProgressBar proBar;
         private System.Windows.Forms.CheckBox checkHigh;
+        private System.Windows.Forms.Button btnDisableSDP;
+        private System.Windows.Forms.Button btnEnableSDP;
     }
 }
 
