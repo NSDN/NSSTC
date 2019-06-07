@@ -45,6 +45,9 @@
             this.labelPath = new System.Windows.Forms.Label();
             this.btnOpen = new System.Windows.Forms.Button();
             this.groupFlash = new System.Windows.Forms.GroupBox();
+            this.proBar = new System.Windows.Forms.ProgressBar();
+            this.btnDisableSDP = new System.Windows.Forms.Button();
+            this.btnEnableSDP = new System.Windows.Forms.Button();
             this.checkHigh = new System.Windows.Forms.CheckBox();
             this.btnCheck = new System.Windows.Forms.Button();
             this.btnRead = new System.Windows.Forms.Button();
@@ -58,9 +61,6 @@
             this.serialPort = new System.IO.Ports.SerialPort(this.components);
             this.openDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveDialog = new System.Windows.Forms.SaveFileDialog();
-            this.proBar = new System.Windows.Forms.ProgressBar();
-            this.btnEnableSDP = new System.Windows.Forms.Button();
-            this.btnDisableSDP = new System.Windows.Forms.Button();
             this.groupPort.SuspendLayout();
             this.groupFile.SuspendLayout();
             this.groupFlash.SuspendLayout();
@@ -241,6 +241,33 @@
             this.groupFlash.TabStop = false;
             this.groupFlash.Text = "读写控制";
             // 
+            // proBar
+            // 
+            this.proBar.Location = new System.Drawing.Point(6, 106);
+            this.proBar.Name = "proBar";
+            this.proBar.Size = new System.Drawing.Size(148, 23);
+            this.proBar.TabIndex = 9;
+            // 
+            // btnDisableSDP
+            // 
+            this.btnDisableSDP.Location = new System.Drawing.Point(239, 106);
+            this.btnDisableSDP.Name = "btnDisableSDP";
+            this.btnDisableSDP.Size = new System.Drawing.Size(75, 23);
+            this.btnDisableSDP.TabIndex = 11;
+            this.btnDisableSDP.Text = "禁用保护";
+            this.btnDisableSDP.UseVisualStyleBackColor = true;
+            this.btnDisableSDP.Click += new System.EventHandler(this.BtnDisableSDP_Click);
+            // 
+            // btnEnableSDP
+            // 
+            this.btnEnableSDP.Location = new System.Drawing.Point(158, 106);
+            this.btnEnableSDP.Name = "btnEnableSDP";
+            this.btnEnableSDP.Size = new System.Drawing.Size(75, 23);
+            this.btnEnableSDP.TabIndex = 10;
+            this.btnEnableSDP.Text = "启用保护";
+            this.btnEnableSDP.UseVisualStyleBackColor = true;
+            this.btnEnableSDP.Click += new System.EventHandler(this.BtnEnableSDP_Click);
+            // 
             // checkHigh
             // 
             this.checkHigh.AutoSize = true;
@@ -358,33 +385,6 @@
             this.saveDialog.DefaultExt = "bin";
             this.saveDialog.Filter = "二进制文件|*.bin|所有文件|*.*";
             this.saveDialog.FileOk += new System.ComponentModel.CancelEventHandler(this.SaveDialog_FileOk);
-            // 
-            // proBar
-            // 
-            this.proBar.Location = new System.Drawing.Point(6, 106);
-            this.proBar.Name = "proBar";
-            this.proBar.Size = new System.Drawing.Size(148, 23);
-            this.proBar.TabIndex = 9;
-            // 
-            // btnEnableSDP
-            // 
-            this.btnEnableSDP.Location = new System.Drawing.Point(158, 106);
-            this.btnEnableSDP.Name = "btnEnableSDP";
-            this.btnEnableSDP.Size = new System.Drawing.Size(75, 23);
-            this.btnEnableSDP.TabIndex = 10;
-            this.btnEnableSDP.Text = "打开保护";
-            this.btnEnableSDP.UseVisualStyleBackColor = true;
-            this.btnEnableSDP.Click += new System.EventHandler(this.BtnEnableSDP_Click);
-            // 
-            // btnDisableSDP
-            // 
-            this.btnDisableSDP.Location = new System.Drawing.Point(239, 106);
-            this.btnDisableSDP.Name = "btnDisableSDP";
-            this.btnDisableSDP.Size = new System.Drawing.Size(75, 23);
-            this.btnDisableSDP.TabIndex = 11;
-            this.btnDisableSDP.Text = "关闭保护";
-            this.btnDisableSDP.UseVisualStyleBackColor = true;
-            this.btnDisableSDP.Click += new System.EventHandler(this.BtnDisableSDP_Click);
             // 
             // MainForm
             // 

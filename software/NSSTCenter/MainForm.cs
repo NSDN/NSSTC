@@ -193,7 +193,14 @@ namespace NSSTCenter
                 select val;
 
             listPort.Items.AddRange(query.ToArray());
-            listPort.SelectedIndex = 0;
+            try
+            {
+                listPort.SelectedIndex = 0;
+            }
+            catch
+            {
+                listPort.SelectedIndex = -1;
+            }
         }
 
         private void BtnConnect_Click(object sender, EventArgs e)
@@ -456,7 +463,7 @@ namespace NSSTCenter
                 return;
             }
             SendBytes(0xA5);
-            MessageBox.Show("软件数据保护（SDP）已开启", "保护已开启", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("软件数据保护（SDP）已开启", "保护已启用", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void BtnDisableSDP_Click(object sender, EventArgs e)
@@ -467,7 +474,7 @@ namespace NSSTCenter
                 return;
             }
             SendBytes(0xAA);
-            MessageBox.Show("软件数据保护（SDP）已关闭", "保护已关闭", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("软件数据保护（SDP）已关闭", "保护已禁用", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }
