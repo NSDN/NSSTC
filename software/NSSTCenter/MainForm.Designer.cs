@@ -376,7 +376,7 @@
             // openDialog
             // 
             this.openDialog.DefaultExt = "bin";
-            this.openDialog.Filter = "二进制文件|*.bin|所有文件|*.*";
+            this.openDialog.Filter = "二进制文件|*.bin|HEX文件|*.hex|所有文件|*.*";
             this.openDialog.Title = "打开文件";
             this.openDialog.FileOk += new System.ComponentModel.CancelEventHandler(this.OpenDialog_FileOk);
             // 

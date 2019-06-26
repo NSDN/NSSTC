@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.IO.Ports;
 using System.Management;
 using System.Windows.Forms;
+using System.Globalization;
 using System.Collections.Generic;
 
 namespace NSSTCenter
@@ -117,6 +119,65 @@ namespace NSSTCenter
             Win32_PnPEntity, // 即插即用设备
         }
 
+        #endregion
+
+        #region "HEX Helper"
+        class HexFile
+        {
+            public struct HexCmd
+            {
+                public byte len;
+                public ushort addr;
+                public byte type;
+                public byte[] bytes;
+                public byte chksum;
+
+                public bool Check()
+                {
+                    if (bytes == null) return false;
+
+                    byte sum = 0x00;
+                    sum += len; sum += (byte)(addr & 0xFF);
+                    sum += (byte)(addr >> 8); sum += type;
+                    foreach (byte b in bytes)
+                        sum += b;
+                    return (0xFF - sum + 1) == chksum;
+                }
+            }
+
+            public List<HexCmd> cmds;
+
+            public HexFile(string[] lines)
+            {
+                cmds = new List<HexCmd>();
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+                    
+                    HexCmd cmd = new HexCmd(); int pos = 1;
+                    byte.TryParse(line.Substring(pos, 2), NumberStyles.HexNumber, null, out cmd.len); pos += 2;
+                    ushort.TryParse(line.Substring(pos, 4), NumberStyles.HexNumber, null, out cmd.addr); pos += 4;
+                    byte.TryParse(line.Substring(pos, 2), NumberStyles.HexNumber, null, out cmd.type); pos += 2;
+                    cmd.bytes = new byte[cmd.len];
+                    for (int j = 0; j < cmd.len; j++)
+                    {
+                        byte.TryParse(line.Substring(pos, 2), NumberStyles.HexNumber, null, out cmd.bytes[j]); pos += 2;
+                    }
+                    byte.TryParse(line.Substring(pos, 2), NumberStyles.HexNumber, null, out cmd.chksum);
+
+                    cmds.Add(cmd);
+                }
+            }
+
+            public bool Check()
+            {
+                foreach (HexCmd cmd in cmds)
+                    if (!cmd.Check())
+                        return false;
+                return true;
+            }
+        }
         #endregion
 
         private int GetChipSize()
@@ -325,6 +386,22 @@ namespace NSSTCenter
                 proBar.Value += 1;
 
                 string path = boxPath.Text;
+                if (File.Exists(path))
+                {
+                    var result = MessageBox.Show("是否覆盖 \"" + path + "\" ?", "读入文件提示", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (result == DialogResult.No)
+                    {
+                        EnableAllControls();
+                        return;
+                    }
+
+                    if (path.EndsWith("hex"))
+                    {
+                        MessageBox.Show("你正在尝试覆盖HEX文件", "读入文件提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        EnableAllControls();
+                        return;
+                    }
+                }
                 File.WriteAllBytes(path, bytes);
                 boxSize.Text = (new FileInfo(path).Length).ToString("X4");
                 boxChksum.Text = chksum.ToString("X4");
@@ -386,39 +463,129 @@ namespace NSSTCenter
             int size = GetChipSize();
             try
             {
-                byte[] bytes = File.ReadAllBytes(boxPath.Text);
-                int fileSize = int.Parse(boxSize.Text, System.Globalization.NumberStyles.HexNumber);
-                if (size < fileSize)
+                string path = boxPath.Text;
+                if (path.EndsWith("hex"))
                 {
-                    MessageBox.Show(
-                        "芯片容量: " + size.ToString("X4") + "\n" + "文件大小: " + fileSize.ToString("X4"),
-                        "文件过大", MessageBoxButtons.OK, MessageBoxIcon.Error
-                    );
-                    EnableAllControls();
-                    return;
-                }
-                proBar.Maximum = fileSize;
-                SendBytes(0xC0, 0xD0, 0xE0, 0xF0);
-                for (int i = 0; i < fileSize; i++)
-                {
-                    SendBytes(0x80 | (bytes[i] & 0x0F), 0x90 | ((bytes[i] & 0xF0) >> 4));
-                    if (checkHigh.Checked)
-                    {
-                        SendBytes(0xA0);
-                    }
-                    else
-                    {
-                        byte b = SendAndReadByte(0xA0);
-                        if (b != bytes[i])
-                            break;
-                    }
-                    proBar.Value = i;
-                    Application.DoEvents();
-                }
-                proBar.Value += 1;
+                    HexFile hexFile = new HexFile(File.ReadAllLines(path));
 
+                    if (!hexFile.Check())
+                    {
+                        MessageBox.Show(
+                            "HEX文件校验失败",
+                            "文件错误", MessageBoxButtons.OK, MessageBoxIcon.Error
+                        );
+                        EnableAllControls();
+                        return;
+                    }
+
+                    int sumBytes = 0;
+                    foreach (HexFile.HexCmd cmd in hexFile.cmds)
+                    {
+                        sumBytes += cmd.len;
+                        if (cmd.addr + cmd.len > size)
+                        {
+                            MessageBox.Show(
+                                "地址: " + cmd.addr.ToString("X4") + "\n" + "长度: " + cmd.len.ToString("X4"),
+                                "文件过大", MessageBoxButtons.OK, MessageBoxIcon.Error
+                            );
+                            EnableAllControls();
+                            return;
+                        }
+                    }
+
+                    proBar.Maximum = sumBytes;
+                    proBar.Value = 0;
+
+                    bool flag = false; byte tmp = 0x00;
+                    void recEvent(object obj, SerialDataReceivedEventArgs args)
+                    {
+                        flag = true;
+                        tmp = (byte)serialPort.ReadByte();
+                    }
+                    serialPort.DataReceived += recEvent;
+
+                    serialPort.ReadExisting();
+                    SendBytes(0xAF);
+
+                    proBar.Style = ProgressBarStyle.Marquee;
+                    int start = Environment.TickCount;
+                    while (!flag)
+                    {
+                        Application.DoEvents();
+                        if (Environment.TickCount - start > 60 * 1000)
+                        {
+                            serialPort.DataReceived -= recEvent;
+                            break;
+                        }
+                    }
+                    proBar.Style = ProgressBarStyle.Continuous;
+                    if (tmp != 0xFA)
+                    {
+                        MessageBox.Show("芯片擦除超时或擦除指令执行失败", "芯片擦除出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        EnableAllControls();
+                        return;
+                    }
+
+                    foreach (HexFile.HexCmd cmd in hexFile.cmds)
+                    {
+                        SendBytes(0xC0 | ((cmd.addr & 0x000F) >> 0));
+                        SendBytes(0xD0 | ((cmd.addr & 0x00F0) >> 4));
+                        SendBytes(0xE0 | ((cmd.addr & 0x0F00) >> 8));
+                        SendBytes(0xF0 | ((cmd.addr & 0xF000) >> 12));
+                        for (int i = 0; i < cmd.bytes.Length; i++)
+                        {
+                            SendBytes(0x80 | (cmd.bytes[i] & 0x0F), 0x90 | ((cmd.bytes[i] & 0xF0) >> 4));
+                            if (checkHigh.Checked)
+                            {
+                                SendBytes(0xA0);
+                            }
+                            else
+                            {
+                                byte b = SendAndReadByte(0xA0);
+                                if (b != cmd.bytes[i])
+                                    break;
+                            }
+                            proBar.Value += 1;
+                            Application.DoEvents();
+                        }
+                    }
+                    proBar.Value += 1;
+                }
+                else
+                {
+                    byte[] bytes = File.ReadAllBytes(boxPath.Text);
+                    int fileSize = int.Parse(boxSize.Text, NumberStyles.HexNumber);
+                    if (size < fileSize)
+                    {
+                        MessageBox.Show(
+                            "芯片容量: " + size.ToString("X4") + "\n" + "文件大小: " + fileSize.ToString("X4"),
+                            "文件过大", MessageBoxButtons.OK, MessageBoxIcon.Error
+                        );
+                        EnableAllControls();
+                        return;
+                    }
+                    proBar.Maximum = fileSize;
+                    SendBytes(0xC0, 0xD0, 0xE0, 0xF0);
+                    for (int i = 0; i < fileSize; i++)
+                    {
+                        SendBytes(0x80 | (bytes[i] & 0x0F), 0x90 | ((bytes[i] & 0xF0) >> 4));
+                        if (checkHigh.Checked)
+                        {
+                            SendBytes(0xA0);
+                        }
+                        else
+                        {
+                            byte b = SendAndReadByte(0xA0);
+                            if (b != bytes[i])
+                                break;
+                        }
+                        proBar.Value = i;
+                        Application.DoEvents();
+                    }
+                    proBar.Value += 1;
+                }
                 if (proBar.Value == proBar.Maximum)
-                    MessageBox.Show("共写入: " + fileSize.ToString("X4"), "芯片写入结束", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("共写入: " + proBar.Value.ToString("X4"), "芯片写入结束", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 else
                     MessageBox.Show("已写入: " + proBar.Value.ToString("X4"), "芯片写入中断", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }

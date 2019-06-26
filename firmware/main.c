@@ -1,4 +1,5 @@
 #include <8052.h>
+#include <string.h>
 
 #define CMD_NRW         0x80
 #define CMD_NDA         0x40
@@ -36,7 +37,7 @@ void main() {
     ES = 1;
     EA = 1;
 
-    sendString("NSSTC-V1.0\r\n");
+    sendString("NSSTC-V1.1\r\n");
 
     while(1) {
         P1 = ~dataBuf;
@@ -68,6 +69,12 @@ void main() {
                         eepRom[0x2AAA] = 0x55;
                         eepRom[0x5555] = 0xA0;
                         P1 = 0xAA;
+                    } else if (recBuf == 0xAF) {
+                        // Chip erase
+                        P1 = 0x00;
+                        memset(eepRom, 0xFF, 0x8000);
+                        sendByte(0xFA);
+                        P1 = 0xFF;
                     } else {
                         // Write in
                         eepRom[writeAddr] = dataBuf;
