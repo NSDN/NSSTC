@@ -1,5 +1,4 @@
 #include <8052.h>
-#include <string.h>
 
 #define CMD_NRW         0x80
 #define CMD_NDA         0x40
@@ -16,7 +15,9 @@ __bit busy = 0, avail = 0;
 static byte recBuf = 0x00;
 static byte dataBuf = 0x00;
 static word readAddr = 0x0000, writeAddr = 0x0000;
+static word eraseAddr = 0x0000;
 
+void delay10ms();
 void sendByte(byte data);
 void sendString(char *s);
 
@@ -69,11 +70,29 @@ void main() {
                         eepRom[0x2AAA] = 0x55;
                         eepRom[0x5555] = 0xA0;
                         P1 = 0xAA;
-                    } else if (recBuf == 0xAF) {
-                        // Chip erase
+                    } else if (recBuf == 0xB0) {
+                        // Chip erase, 0x00
                         P1 = 0x00;
-                        memset(eepRom, 0xFF, 0x8000);
-                        sendByte(0xFA);
+                        for (eraseAddr = 0x0000; eraseAddr < 0x8000; eraseAddr++) {
+                            if ((eraseAddr % 0x40) == 0) {
+                                delay10ms();
+                                P40 = !P40;
+                            }
+                            eepRom[eraseAddr] = 0x00;
+                        }
+                        sendByte(0x0B);
+                        P1 = 0xFF;
+                    } else if (recBuf == 0xBF) {
+                        // Chip erase, 0xFF
+                        P1 = 0x00;
+                        for (eraseAddr = 0x0000; eraseAddr < 0x8000; eraseAddr++) {
+                            if ((eraseAddr % 0x40) == 0) {
+                                delay10ms();
+                                P40 = !P40;
+                            }
+                            eepRom[eraseAddr] = 0xFF;
+                        }
+                        sendByte(0xFB);
                         P1 = 0xFF;
                     } else {
                         // Write in
@@ -105,6 +124,17 @@ void main() {
         recBuf = 0x00;
         avail = 0;
     }
+}
+
+void delay10ms() {
+	byte i, j;
+
+	i = 18;
+	j = 235;
+	do
+	{
+		while (--j);
+	} while (--i);
 }
 
 void __uart_interrupt() __interrupt 4 __using 1 {

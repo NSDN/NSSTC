@@ -374,6 +374,24 @@ namespace NSSTCenter
             ushort chksum = 0;
             try
             {
+                string path = boxPath.Text;
+                if (File.Exists(path))
+                {
+                    if (path.EndsWith("hex"))
+                    {
+                        MessageBox.Show("你正在尝试覆盖HEX文件", "读入文件提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        EnableAllControls();
+                        return;
+                    }
+
+                    var result = MessageBox.Show("是否覆盖 \"" + path + "\" ?", "读入文件提示", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (result == DialogResult.No)
+                    {
+                        EnableAllControls();
+                        return;
+                    }
+                }
+
                 proBar.Maximum = size;
                 SendBytes(0x40, 0x50, 0x60, 0x70);
                 for (int i = 0; i < size; i++)
@@ -385,23 +403,6 @@ namespace NSSTCenter
                 }
                 proBar.Value += 1;
 
-                string path = boxPath.Text;
-                if (File.Exists(path))
-                {
-                    var result = MessageBox.Show("是否覆盖 \"" + path + "\" ?", "读入文件提示", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                    if (result == DialogResult.No)
-                    {
-                        EnableAllControls();
-                        return;
-                    }
-
-                    if (path.EndsWith("hex"))
-                    {
-                        MessageBox.Show("你正在尝试覆盖HEX文件", "读入文件提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        EnableAllControls();
-                        return;
-                    }
-                }
                 File.WriteAllBytes(path, bytes);
                 boxSize.Text = (new FileInfo(path).Length).ToString("X4");
                 boxChksum.Text = chksum.ToString("X4");
@@ -496,6 +497,20 @@ namespace NSSTCenter
                     proBar.Maximum = sumBytes;
                     proBar.Value = 0;
 
+                    byte fill = listFill.SelectedIndex == 1 ? (byte)0xFF : (byte)0x00;
+                    byte cod, req;
+                    if (fill == 0xFF)
+                    {
+                        cod = 0xBF; req = 0xFB;
+                    }
+                    else
+                    {
+                        cod = 0xB0; req = 0x0B;
+                    }
+
+                    serialPort.ReadExisting();
+                    SendBytes(cod);
+
                     bool flag = false; byte tmp = 0x00;
                     void recEvent(object obj, SerialDataReceivedEventArgs args)
                     {
@@ -504,22 +519,17 @@ namespace NSSTCenter
                     }
                     serialPort.DataReceived += recEvent;
 
-                    serialPort.ReadExisting();
-                    SendBytes(0xAF);
-
                     proBar.Style = ProgressBarStyle.Marquee;
                     int start = Environment.TickCount;
                     while (!flag)
                     {
                         Application.DoEvents();
-                        if (Environment.TickCount - start > 60 * 1000)
-                        {
-                            serialPort.DataReceived -= recEvent;
+                        if (Environment.TickCount - start > 30 * 1000)
                             break;
-                        }
                     }
                     proBar.Style = ProgressBarStyle.Continuous;
-                    if (tmp != 0xFA)
+                    serialPort.DataReceived -= recEvent;
+                    if (tmp != req)
                     {
                         MessageBox.Show("芯片擦除超时或擦除指令执行失败", "芯片擦除出错", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         EnableAllControls();
@@ -549,7 +559,6 @@ namespace NSSTCenter
                             Application.DoEvents();
                         }
                     }
-                    proBar.Value += 1;
                 }
                 else
                 {
@@ -565,6 +574,7 @@ namespace NSSTCenter
                         return;
                     }
                     proBar.Maximum = fileSize;
+                    proBar.Value = 0;
                     SendBytes(0xC0, 0xD0, 0xE0, 0xF0);
                     for (int i = 0; i < fileSize; i++)
                     {
@@ -579,10 +589,9 @@ namespace NSSTCenter
                             if (b != bytes[i])
                                 break;
                         }
-                        proBar.Value = i;
+                        proBar.Value += 1;
                         Application.DoEvents();
                     }
-                    proBar.Value += 1;
                 }
                 if (proBar.Value == proBar.Maximum)
                     MessageBox.Show("共写入: " + proBar.Value.ToString("X4"), "芯片写入结束", MessageBoxButtons.OK, MessageBoxIcon.Information);
