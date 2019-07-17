@@ -141,7 +141,7 @@ namespace NSSTCenter
                     sum += (byte)(addr >> 8); sum += type;
                     foreach (byte b in bytes)
                         sum += b;
-                    return (0xFF - sum + 1) == chksum;
+                    return (byte)((byte)(~sum) + 1) == chksum;
                 }
             }
 
