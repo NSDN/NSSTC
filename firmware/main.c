@@ -41,7 +41,6 @@ void main() {
     sendString("NSSTC-V1.1\r\n");
 
     while(1) {
-        P1 = ~dataBuf;
         if (!avail) continue;
 
         if (recBuf & CMD_NRW) {
@@ -98,6 +97,7 @@ void main() {
                         // Write in
                         eepRom[writeAddr] = dataBuf;
                         sendByte(dataBuf); // Send to host to verify.
+                        P1 = ~dataBuf;
                         writeAddr += 1;
                         P40 = !P40;
                     }

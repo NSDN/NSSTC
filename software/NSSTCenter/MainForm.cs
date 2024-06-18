@@ -349,9 +349,9 @@ namespace NSSTCenter
                 proBar.Value += 1;
 
                 if (proBar.Value == proBar.Maximum)
-                    MessageBox.Show("共写入: " + size.ToString("X4"), "芯片填充结束", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("共写入: " + size.ToString("X4") + ", " + (size / 1024.0f).ToString("F3") + "KiB", "芯片填充结束", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 else
-                    MessageBox.Show("已写入: " + proBar.Value.ToString("X4"), "芯片填充中断", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("已写入: " + proBar.Value.ToString("X4") + ", " + (proBar.Value / 1024.0f).ToString("F3") + "KiB", "芯片填充中断", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
@@ -594,9 +594,9 @@ namespace NSSTCenter
                     }
                 }
                 if (proBar.Value == proBar.Maximum)
-                    MessageBox.Show("共写入: " + proBar.Value.ToString("X4"), "芯片写入结束", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("共写入: " + proBar.Value.ToString("X4") + ", " + (proBar.Value / 1024.0f).ToString("F3") + "KiB", "芯片写入结束", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 else
-                    MessageBox.Show("已写入: " + proBar.Value.ToString("X4"), "芯片写入中断", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("已写入: " + proBar.Value.ToString("X4") + ", " + (proBar.Value / 1024.0f).ToString("F3") + "KiB", "芯片写入中断", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
